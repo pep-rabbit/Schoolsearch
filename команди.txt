@@ -1,0 +1,62 @@
+Пошук учня за прізвищем:
+S COOKUS
+
+Пошук учня за прізвищем із виведенням номера автобуса:
+S COOKUS B
+
+Пошук учителя за прізвищем:
+T FAFARD
+
+Пошук учнів у кабінеті:
+C 107
+
+Пошук учнів за номером автобуса:
+B 52
+
+Додавання учня:
+A IVANOV IVAN 5 107 52 PETROV PETRO
+
+Видалення учня за прізвищем та ім'ям:
+D COOKUS XUAN
+
+Оновлення оцінки:
+U COOKUS XUAN grade 4
+
+Оновлення номера кабінету:
+U COOKUS XUAN classroom 105
+
+Оновлення номера автобуса:
+U COOKUS XUAN bus 55
+
+Оновлення прізвища учня:
+U COOKUS XUAN st_last_name IVANOV
+
+Оновлення імені учня:
+U COOKUS XUAN st_first_name IVAN
+
+Оновлення прізвища вчителя:
+U COOKUS XUAN t_last_name PETROV
+
+Оновлення імені вчителя:
+U COOKUS XUAN t_first_name PETRO
+
+Збереження у форматі JSON:
+S json students_backup
+
+Збереження у форматі CSV:
+S csv students_backup
+
+Збереження у форматі TXT:
+S txt students_backup
+
+Інформація про базу даних:
+I
+
+Виведення всіх записів:
+List
+
+Завершення роботи:
+Q
+
+Очищення консолі:
+CLEAR
