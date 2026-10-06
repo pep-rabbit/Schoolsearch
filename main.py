@@ -254,7 +254,7 @@ class CommandLineInterface:
                 print(f"Помилка: {error}")
 
     def _process_command(self, cmd, cmd_parts):
-        search_time = 0.0
+        database_time = 0.0
         is_valid_command = False
         
         # S[tudent]: <прізвище> [B[us]]
@@ -267,7 +267,7 @@ class CommandLineInterface:
             
             start_time = time.perf_counter()
             results = self.db.search_by_student_last_name(lastname)
-            search_time = time.perf_counter() - start_time
+            database_time = time.perf_counter() - start_time
             
             for s in results:
                 if is_bus:
@@ -282,7 +282,7 @@ class CommandLineInterface:
             
             start_time = time.perf_counter()
             results = self.db.search_by_teacher_last_name(lastname)
-            search_time = time.perf_counter() - start_time
+            database_time = time.perf_counter() - start_time
             
             for s in results:
                 print(f"{s.st_last_name}, {s.st_first_name}")
@@ -295,7 +295,7 @@ class CommandLineInterface:
                 
                 start_time = time.perf_counter()
                 results = self.db.search_by_classroom(class_num)
-                search_time = time.perf_counter() - start_time
+                database_time = time.perf_counter() - start_time
                 
                 for s in results:
                     print(f"{s.st_last_name}, {s.st_first_name}")
@@ -310,7 +310,7 @@ class CommandLineInterface:
                 
                 start_time = time.perf_counter()
                 results = self.db.search_by_bus(bus_num)
-                search_time = time.perf_counter() - start_time
+                database_time = time.perf_counter() - start_time
                 
                 for s in results:
                     print(f"{s.st_last_name}, {s.st_first_name}, {s.grade}, {s.classroom}")
@@ -320,58 +320,76 @@ class CommandLineInterface:
         # A[dd]: <прізвище> <ім'я> <клас> <кабінет> <автобус>
         #       <прізвище_вчителя> <ім'я_вчителя>
         elif cmd in ("A", "Add") and len(cmd_parts) == 8:
-            self.db.add_student(self.db._student_from_values(cmd_parts[1:]))
+            student = self.db._student_from_values(cmd_parts[1:])
+            start_time = time.perf_counter()
+            self.db.add_student(student)
+            database_time = time.perf_counter() - start_time
             is_valid_command = True
             print("Запис додано.")
 
         # D[elete]: <прізвище> <ім'я>
         elif cmd in ("D", "Delete") and len(cmd_parts) >= 3:
+            start_time = time.perf_counter()
             matches = self.db.get_student(cmd_parts[1], cmd_parts[2])
             if not matches:
                 raise ValueError("Учня не знайдено")
             deleted_count = self.db.delete_students(matches)
+            database_time = time.perf_counter() - start_time
             is_valid_command = True
             print(f"Видалено записів: {deleted_count}.")
 
         # U[pdate]: <прізвище> <ім'я> <поле> <нове_значення>
         elif cmd in ("U", "Update") and len(cmd_parts) == 5:
-            matches = self.db.get_student(cmd_parts[1], cmd_parts[2])
             field = cmd_parts[3]
             if field not in STUDENT_FIELDS:
                 raise ValueError(f"Невідоме поле: {field}")
+
+            start_time = time.perf_counter()
+            matches = self.db.get_student(cmd_parts[1], cmd_parts[2])
             if not matches:
                 raise ValueError("Учня не знайдено")
+            lookup_time = time.perf_counter() - start_time
             old_value = getattr(matches[0], field)
             new_value = type(old_value)(cmd_parts[4])
+            start_time = time.perf_counter()
             self.db.update_students(matches, **{field: new_value})
+            database_time = lookup_time + time.perf_counter() - start_time
             is_valid_command = True
             print(f"Оновлено записів: {len(matches)}.")
 
         # S[ave]: <формат> <назва_файлу>
         elif cmd in ("S", "Save") and len(cmd_parts) == 3:
+            start_time = time.perf_counter()
             self.db.save(cmd_parts[2], cmd_parts[1])
+            database_time = time.perf_counter() - start_time
             is_valid_command = True
             print(f"Дані збережено у {cmd_parts[2]}.")
 
         # I[nfo]
         elif cmd in ("I", "Info") and len(cmd_parts) == 1:
+            start_time = time.perf_counter()
+            database_info = self.db.info()
+            database_time = time.perf_counter() - start_time
             labels = {
                 "students": "Учнів",
                 "teachers": "Учителів",
                 "classrooms": "Класів",
                 "buses": "Автобусів",
             }
-            for name, value in self.db.info().items():
+            for name, value in database_info.items():
                 print(f"{labels[name]}: {value}")
             is_valid_command = True
 
         elif cmd in ("List", "Read"):
-            for student in self.db.students:
+            start_time = time.perf_counter()
+            students = self.db.students
+            database_time = time.perf_counter() - start_time
+            for student in students:
                 print(", ".join(str(getattr(student, field)) for field in STUDENT_FIELDS))
             is_valid_command = True
 
         if is_valid_command:
-            print(f"Час пошуку: {search_time:.6f} секунд")
+            print(f"Час роботи БД: {database_time:.6f} секунд")
 
 
 if __name__ == "__main__":
